@@ -1,0 +1,34 @@
+{% extends 'index.html' %}
+
+{% block css %}
+
+{% endblock %}
+
+{% block content %}
+    {% for item in host_obj %}
+    <div class="list-group list-overview" style="width: 350px; float: left; margin: 5px;">
+        <button type="button" class="list-group-item" id="overview_btn" onclick="jump_to_host()">
+            <h4>{{ item.hostname }}</h4>
+            <div style="margin-top: -10px; margin-bottom: 10px">{{ item.api }}</div>
+            <div class="progress">
+                <div class="progress-bar" role="progressbar" aria-valuenow="{{ item.mem_str }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ item.mem_per }}; text-align: left; padding-left: 4px">
+                Mem: {{ item.mem_per }}
+                </div>
+            </div>
+            <div class="progress">
+                <div class="progress-bar" role="progressbar" aria-valuenow="{{ item.disk_str }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ item.disk_per }}; text-align: left; padding-left: 4px"">
+                Disk: {{ item.disk_per }}
+                </div>
+            </div>
+        </button>
+    </div>
+    {% endfor %}
+{% endblock %}
+
+{% block js %}
+    <script>
+        function jump_to_host() {
+            location.href = '../hosts'
+        }
+    </script>
+{% endblock %}

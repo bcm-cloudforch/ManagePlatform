@@ -1,0 +1,238 @@
+{% extends 'index.html' %}
+
+{% block css %}
+    <style>
+        .edit_form {
+            z-index: 110;
+            width: 800px;
+            height: 600px;
+            margin-left: -400px;
+            margin-top: -300px;
+        }
+
+        .edit_form .input-group {
+            width: 230px;
+            float: left;
+            margin: 10px;
+        }
+        .edit_title {
+            margin-top: 10px;
+            margin-bottom: 0;
+            margin-left: 10px;
+            font-size: 14px;
+            color: #838383;
+            font-weight: bold;
+            font-style: italic;
+        }
+        hr {
+            margin-top: 0;
+            margin-bottom: 5px;
+            margin-left: 10px;
+        }
+        .edit_form .edit_frame {
+            float: left;
+            margin-bottom: 10px;
+            position: relative;
+        }
+        .edit_form .edit_frame .input-group {
+            margin-bottom: 0;
+        }
+        .edit_form .edit_frame .edit_tips {
+            margin-left: 10px;
+            margin-top: 0;
+            font-size: 11px;
+            color: #838383;
+            left: 0;
+            bottom: 0;
+            position: relative;
+        }
+        
+        .dynamic_create .btn_delport {
+            margin-left: 10px;
+            margin-top: 0;
+            margin-right: 10px;
+            font-size: 11px;
+            color: red;
+            right: 0;
+            position: absolute;
+            float: right;
+        }
+    </style>
+{% endblock %}
+
+
+{% block content %}
+    {% for item in ctn_obj %}
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h4 style="display: inline; padding-left: 20px;">{{ item.hostname }}</h4>
+            <span style="display: inline;">/{{ item.hostip }}</span>
+            <button type="button" class="btn btn-success" style="float: right;">创建容器</button>
+            <div style="clear: both;"></div>
+        </div>
+            <table class="table" hostid="{{ item.hostid }}">
+                <thead>
+                    <tr>
+                        <th class="table_common">Actions</th>
+                        <th class="table_common">Status</th>
+                        <th class="table_common">Host</th>
+                        <th class="table_common">Name</th>
+                        <th class="table_common">IP</th>
+                        <th class="table_common" style="width: 150px">Image</th>
+                        <th class="table_common" style="width: 450px">CMD</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for i in item.ctn %}
+                    <tr uuid="{{ i.id }}">
+                        <td class="table_common">
+                            <div class="btn-group">
+                                <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    Action
+                                    <span class="caret"></span>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a onclick="operateContainer(this)" action="start">Start</a></li>
+                                    <li><a onclick="operateContainer(this)" action="stop">Stop</a></li>
+                                    <li><a onclick="operateContainer(this)" action="restart">Restart</a></li>
+                                    <li role="separator" class="divider"></li>
+                                    <li><a onclick="operateContainer(this)" action="destroy">Destroy</a></li>
+                                </ul>
+                            </div>
+                        </td>
+                        <th class="table_common ctn_stats">
+                            <span class="label" style="zoom: 125%; line-height: 25px">{{ i.status }}</span>
+                        </th>
+                        <td class="table_common">{{ i.host.hostname }}</td>
+                        <td class="table_common">{{ i.name }}</td>
+                        <td class="table_common">{{ i.network }}</td>
+                        <td class="table_common" style="width: 150px">{{ i.base_img }}</td>
+                        <td class="table_common" style="width: 450px; text-align: left; padding-left: 8px">{{ i.cmd }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+    </div>
+    {% endfor %}
+
+    <div class="shade "></div>
+    <div class="panel panel-default edit_form" style="overflow: scroll">
+        <div class="panel-heading">创建新容器</div>
+        <div class="panel-body">
+            <form>
+
+
+                <div class="edit_title">General Settings</div>
+                <hr>
+                <div class="edit_frame">
+                    <div class="input-group">
+                        <span class="input-group-addon" >Name</span>
+                        <input type="text" class="form-control" name="ctn_name" aria-describedby="basic-addon3">
+                    </div>
+                    <div class="edit_tips" style="">容器名, 唯一</div>
+                </div>
+                <div class="edit_frame">
+                    <div class="input-group">
+                        <span class="input-group-addon" >Image</span>
+                        <input type="text" class="form-control" name="ctn_img" aria-describedby="basic-addon3">
+                    </div>
+                    <div class="edit_tips" style="">镜像, repo/image:tag, 也可只写image</div>
+                </div>
+                <div class="edit_frame">
+                    <div class="input-group">
+                        <span class="input-group-addon" >Restart Policy</span>
+                        <input type="text" class="form-control" name="ctn_restartpolicy" aria-describedby="basic-addon3">
+                    </div>
+                    <div class="edit_tips" style="">重启策略: none, on-failure, always</div>
+                </div>
+                <div class="edit_frame">
+                    <div class="input-group" style="width: 730px;">
+                        <span class="input-group-addon" >Command</span>
+                        <input type="text" class="form-control" name="ctn_cmd" aria-describedby="basic-addon3">
+                    </div>
+                    <div class="edit_tips" style="">运行的命令</div>
+                </div>
+
+                <div class="edit_title">Network Bindings</div>
+                <hr>
+                <div>
+                    <button type="button" id="btn_addport" class="btn btn-default" style="float: left; margin: 10px;">Add Port Bindings</button>
+                </div>
+
+                <div class="edit_title">Volume Bindings</div>
+                <hr>
+                <button type="button" id="btn_addvol" class="btn btn-default" style="float: left; margin: 10px;">Add Volume Bindings</button>
+
+
+                <div style="clear: both;"></div>
+            </form>
+        </div>
+    </div>
+
+{% endblock %}
+
+
+{% block js %}
+    <script>
+
+        function operateContainer(ths) {
+            var ctn_id = $(ths).parent().parent().parent().parent().parent().attr('uuid');
+            var host_id = $(ths).parent().parent().parent().parent().parent().parent().parent().attr('hostid');
+            var action = $(ths).attr('action');
+            $.ajax({
+                url: '../containerAction/',
+                type: 'POST',
+                data: {'ctn_id': ctn_id, 'host_id': host_id, 'action': action },
+                success: function (data) {
+                    var obj = JSON.parse(data);
+                    if(obj.status){
+                       $.ajax({
+                           url: '../callUpdateContainer/',
+                           type: 'POST',
+                           data: {'host_id': host_id}
+                       });
+                       location.reload();
+                       alert('Done!')
+                    }else{
+                        alert(obj.error)
+                    }
+                }
+            })
+        }
+
+        window.onload = function () {
+            var ctn_status_dict = {0: 'running', 1: 'exited', 2: 'created', 3: 'restarting'};
+            var label_status_dict = {
+                0: 'label-primary', 1: 'label-default',
+                2: 'label-info', 3: 'label-warning'
+            };
+            $('.ctn_stats .label').each(function () {
+                var code = $(this).text();
+                var status = ctn_status_dict[code];
+                var label_status = label_status_dict[code];
+                $(this).text(status);
+                $(this).addClass(label_status)
+            })
+        };
+
+        $("#btn_addport").click(function () {
+            var txt_portadd = "<div class=\"edit_frame dynamic_create\">\n" +
+                "                    <div class=\"input-group\">\n" +
+                "                        <span class=\"input-group-addon\" >Port</span>\n" +
+                "                        <input type=\"text\" class=\"form-control\" name=\"ctn_port\" aria-describedby=\"basic-addon3\">\n" +
+                "                    </div>\n" +
+                "                    <div class=\"edit_tips\">\n" +
+                "                        主机端口:容器端口\n" +
+                "                        <a class=\"btn_delport\" onclick=\"deletePortTxt(this)\">删除</a>\n" +
+                "                    </div>\n" +
+                "                </div>";
+            $(txt_portadd).insertAfter($(this))
+        });
+
+        function deletePortTxt(ths) {
+            $(ths).parent().parent().detach()
+        }
+
+
+    </script>
+{% endblock %}

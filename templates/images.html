@@ -1,0 +1,39 @@
+{% extends 'index.html' %}
+
+{% block css %}
+    <style>
+
+    </style>
+{% endblock %}
+
+
+{% block content %}
+    {% for item in img_obj %}
+    <div class="panel panel-default" style="width: 500px">
+        <div class="panel-heading">
+            <h4 style="display: inline; padding-left: 20px;">{{ item.registry }}</h4>
+        </div>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th class="table_common">Image</th>
+                    <th class="table_common">Tags</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for img in item.img %}
+                <tr>
+                    <td class="table_common">{{ img.name }}</td>
+                    <td class="table_common">{{ img.tag }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endfor %}
+{% endblock %}
+
+
+{% block js %}
+
+{% endblock %}

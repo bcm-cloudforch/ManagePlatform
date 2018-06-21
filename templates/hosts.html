@@ -1,0 +1,170 @@
+{% extends 'index.html' %}
+
+{% block css %}
+<style>
+    #table_hostlist {
+        border: 1px solid cyan;
+        position: fixed;
+        float: left;
+    }
+    .edit_form form div {
+        margin-left: 20px;
+        margin-top: 20px;
+        left: 0;
+    }
+    .edit_form form div label {
+        width: 80px;
+    }
+    .edit_form form div input {
+        width: 150px;
+        right: 0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+    <form>
+        <input id="host_add" type="button" value="添加主机">
+    </form>
+
+	<table id='table_hostlist'">
+		<thead>
+			<tr>
+				<th class="table_common">主机名</th>
+				<th class="table_common">IP</th>
+				<th class="table_common" style="width: 60px;">API端口</th>
+				<th class="table_common">Docker版本</th>
+				<th class="table_common" style="width: 150px">Disk</th>
+				<th class="table_common" style="width: 150px">Memory</th>
+				<th class="table_common" style="width: 200px">OS</th>
+                <th class="table_common">操作</th>
+			</tr>
+		</thead>
+        <tbody>
+            {% for item in host_obj %}
+            <tr host_id="{{ item.id }}">
+                <td class="table_common table_hostname" >{{ item.hostname }}</td>
+                <td class="table_common table_ip" >{{ item.ip }}</td>
+                <td class="table_common table_api_port" style="width: 60px;">{{ item.api_port }}</td>
+                <td class="table_common" >{{ item.docker_ver }}</td>
+                <td class="table_common" >{{ item.disk_free }} / {{ item.disk_all }} GB</td>
+                <td class="table_common" >{{ item.mem_free }} / {{ item.mem_all }} GB</td>
+                <td class="table_common" >{{ item.os }}</td>
+                <td class="table_common" >
+                    <form>
+                        <input type="button" class='host_edit' value="编辑">
+                        <input type="button" class='host_del' value="删除">
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="shade hide"></div>
+
+    <div class="edit_form hide">
+        <form>
+            <div>
+                <input type="hidden" id='edit_form_id' name="id">
+            </div>
+            <div>
+                <label for="edit_form_hostname">主机名: </label>
+                <input type="text" id="edit_form_hostname" name="hostname">
+            </div>
+            <div>
+                <label for="edit_form_ip">IP: </label>
+                <input type="text" id="edit_form_ip" name="ip">
+            </div>
+            <div>
+                <label for="edit_form_api">API端口: </label>
+                <input type="text" id="edit_form_api" name="api_port">
+            </div>
+            <input type="button" class="edit_form_button edit_form_confirm" value="确定">
+            <input type="button" class="edit_form_button hide" id="edit_form_del" value="删除">
+            <input type="button" class="edit_form_button edit_form_cancel" value="取消">
+        </form>
+    </div>
+
+
+
+{% endblock %}
+
+{% block js %}
+<script>
+
+    $(".host_edit").click(function () {
+        $('#edit_form_del').addClass('hide');
+        $('.shade, .edit_form, .edit_form_confirm').removeClass('hide');
+        var host_id = $(this).parent().parent().parent().attr('host_id');
+        var hostname = $(this).parent().parent().siblings().html();
+        var ip = $(this).parent().parent().siblings().next().html();
+        var api_port = $(this).parent().parent().siblings().next().next().html();
+        $(".edit_form #edit_form_id").val(host_id);
+        $(".edit_form #edit_form_hostname").val(hostname);
+        $(".edit_form #edit_form_ip").val(ip);
+        $(".edit_form #edit_form_api").val(api_port);
+    });
+
+    $("#host_add").click(function () {
+        $('#edit_form_del').addClass('hide');
+        $('.shade, .edit_form, .edit_form_confirm').removeClass('hide');
+    });
+
+    $(".host_del").click(function () {
+        $('.edit_form_confirm').addClass('hide');
+        $('.shade, .edit_form, #edit_form_del').removeClass('hide');
+        var host_id = $(this).parent().parent().parent().attr('host_id');
+        var hostname = $(this).parent().parent().siblings().html();
+        var ip = $(this).parent().parent().siblings().next().html();
+        var api_port = $(this).parent().parent().siblings().next().next().html();
+        $(".edit_form #edit_form_id").val(host_id);
+        $(".edit_form #edit_form_hostname").val(hostname);
+        $(".edit_form #edit_form_ip").val(ip);
+        $(".edit_form #edit_form_api").val(api_port);
+    });
+
+    $(".edit_form_cancel").click(function () {
+        $('.shade,.edit_form,.del_form').addClass('hide');
+        $('.edit_form #edit_form_hostname').val("");
+        $('.edit_form #edit_form_ip').val("");
+        $('.edit_form #edit_form_api').val("");
+        $(".edit_form #edit_form_id").val("");
+    });
+
+    $('.edit_form_confirm').click(function () {
+        $.ajax({
+            type: 'POST',
+            url: '/ajax_host_mod/',
+            data: $(".edit_form form").serialize(),
+            traditional: true,
+            success: function (ret) {
+                var obj = JSON.parse(ret);
+                if(obj.status){
+                    location.reload()
+                }else{
+                    alert(obj.error)
+                }
+            }
+        })
+    });
+
+    $('#edit_form_del').click(function () {
+        $.ajax({
+            type: 'POST',
+            url: '/ajax_host_del/',
+            data: $(".edit_form form").serialize(),
+            traditional: true,
+            success: function (ret) {
+                var obj = JSON.parse(ret);
+                if(obj.status){
+                    location.reload()
+                }else{
+                    alert(obj.error)
+                }
+            }
+        })
+    });
+
+</script>
+{% endblock %}
